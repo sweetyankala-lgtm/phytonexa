@@ -3,20 +3,10 @@ services:
     name: agrovision-ai
     runtime: python
     plan: free
-    buildCommand: >
-      pip install -r requirements-model.txt &&
-      python3 -c "
-      from huggingface_hub import hf_hub_download
-      import shutil, os, pathlib
-      model_dir = pathlib.Path('model')
-      model_dir.mkdir(exist_ok=True)
-      path = hf_hub_download(repo_id='rn-12-19/plant-disease-model-v5', filename='phase2_epoch_025.keras')
-      shutil.copy(path, model_dir / 'model.keras')
-      print('Model downloaded to model/model.keras')
-      "
-    startCommand: gunicorn --bind 0.0.0.0:$PORT --workers 1 --timeout 120 app:app
+    buildCommand: "pip install -r requirements-model.txt && python3 scripts/download_model.py"
+    startCommand: "gunicorn --bind 0.0.0.0:$PORT --workers 1 --timeout 120 app:app"
     envVars:
       - key: HF_TOKEN
         sync: false
       - key: PYTHON_VERSION
-        value: 3.11.0
+        value: "3.11.0"
