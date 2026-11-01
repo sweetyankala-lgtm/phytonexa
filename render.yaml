@@ -4,7 +4,7 @@ services:
     runtime: python
     plan: free
     buildCommand: "pip install -r requirements-model.txt && python3 download_model.py"
-    startCommand: "gunicorn --bind 0.0.0.0:$PORT --workers 1 --timeout 120 app:app"
+    startCommand: "gunicorn --bind 0.0.0.0:$PORT --workers 1 --timeout 300 --preload app:app"
     envVars:
       - key: HF_TOKEN
         sync: false

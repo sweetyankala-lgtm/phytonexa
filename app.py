@@ -13,6 +13,7 @@ from ai.predictor import (
     ModelUnavailableError,
     PredictionError,
     get_model_config,
+    load_model,
     normalize_class_name,
     predict_image,
 )
@@ -59,6 +60,17 @@ def load_disease_guides():
 
 DISEASE_GUIDES = load_disease_guides()
 logger.info("Loaded %d disease guides from disease_info.json", len(DISEASE_GUIDES))
+
+# Pre-load the TensorFlow model at startup so the first user request is fast.
+# On Render free tier, lazy loading causes the first /api/predict to timeout.
+try:
+    _config = get_model_config(MODEL_DIR)
+    _model_path = str((MODEL_DIR / "model.keras").resolve())
+    logger.info("Pre-loading TensorFlow model from %s ...", _model_path)
+    load_model(_model_path)
+    logger.info("Model pre-loaded successfully — ready to serve predictions.")
+except Exception as e:
+    logger.warning("Could not pre-load model at startup: %s", e)
 
 
 def json_error(message, status_code):
