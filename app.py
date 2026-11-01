@@ -1,6 +1,7 @@
-"""Beginner-friendly Flask API for AgroVision AI."""
+"""AgroVision AI – Flask API for plant disease detection."""
 
 import io
+import json
 import logging
 from pathlib import Path
 
@@ -19,6 +20,7 @@ from ai.predictor import (
 
 BASE_DIR = Path(__file__).resolve().parent
 MODEL_DIR = BASE_DIR / "model"
+DATA_DIR = BASE_DIR / "data"
 MAX_IMAGE_BYTES = 8 * 1024 * 1024
 MAX_IMAGE_PIXELS = 20_000_000
 
@@ -26,54 +28,37 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
-# Extra space allows multipart form headers around the 8 MB image.
 app.config["MAX_CONTENT_LENGTH"] = MAX_IMAGE_BYTES + 1024 * 1024
 
 
-DISEASE_GUIDES = {
-    "tomato_early_blight": {
-        "name": "Tomato early blight",
-        "crop": "Tomato",
-        "symptoms": "Brown, target-like spots often start on older leaves; yellowing and leaf drop may follow.",
-        "prevention": "Use healthy planting material, rotate crops, improve airflow, water near the soil, and remove infected debris.",
-        "next_steps": "Inspect nearby plants and ask a local agricultural expert to confirm the cause.",
-    },
-    "tomato_late_blight": {
-        "name": "Tomato late blight",
-        "crop": "Tomato",
-        "symptoms": "Dark, water-soaked areas can expand quickly; pale growth may appear beneath leaves in humid conditions.",
-        "prevention": "Use healthy planting material, improve airflow, avoid prolonged leaf wetness, and remove infected debris.",
-        "next_steps": "If symptoms are spreading quickly, contact a local agricultural expert promptly.",
-    },
-    "potato_early_blight": {
-        "name": "Potato early blight",
-        "crop": "Potato",
-        "symptoms": "Dark spots, often with concentric rings, commonly begin on older leaves; nearby tissue may yellow.",
-        "prevention": "Rotate crops, use healthy seed potatoes, encourage airflow, and clear crop residues.",
-        "next_steps": "Check nearby plants and ask a qualified local expert to confirm the cause.",
-    },
-    "potato_late_blight": {
-        "name": "Potato late blight",
-        "crop": "Potato",
-        "symptoms": "Water-soaked or dark lesions may expand quickly; pale growth can appear under leaves in humid weather.",
-        "prevention": "Plant healthy seed potatoes, avoid extended leaf wetness, and manage volunteer plants.",
-        "next_steps": "Seek local expert confirmation, especially when symptoms are spreading.",
-    },
-    "tomato_healthy": {
-        "name": "Healthy tomato leaf",
-        "crop": "Tomato",
-        "symptoms": "The model class indicates a resemblance to its healthy-leaf examples; it does not rule out other problems.",
-        "prevention": "Monitor plants regularly and provide appropriate water and airflow.",
-        "next_steps": "Check the plant again if symptoms appear and seek expert advice if it declines.",
-    },
-    "potato_healthy": {
-        "name": "Healthy potato leaf",
-        "crop": "Potato",
-        "symptoms": "The model class indicates a resemblance to its healthy-leaf examples; it does not rule out other problems.",
-        "prevention": "Monitor plants regularly and use healthy seed potatoes.",
-        "next_steps": "Check the plant again if symptoms appear and seek expert advice if it declines.",
-    },
-}
+def load_disease_guides():
+    """Load the full 38-class disease information database from JSON."""
+    guides_path = DATA_DIR / "disease_info.json"
+    try:
+        with guides_path.open("r", encoding="utf-8") as f:
+            raw = json.load(f)
+        # Re-key by normalized class name so lookups match predictor output
+        guides = {}
+        for label, info in raw.items():
+            key = normalize_class_name(label)
+            guides[key] = {
+                "original_label": label,
+                "name": info.get("disease", "Unknown"),
+                "crop": info.get("crop", "Unknown"),
+                "health_status": info.get("health_status", "unknown"),
+                "description": info.get("description", ""),
+                "symptoms": info.get("symptoms", []),
+                "prevention": info.get("prevention", []),
+                "management": info.get("management", ""),
+            }
+        return guides
+    except (OSError, json.JSONDecodeError) as error:
+        logger.warning("Could not load disease_info.json: %s", error)
+        return {}
+
+
+DISEASE_GUIDES = load_disease_guides()
+logger.info("Loaded %d disease guides from disease_info.json", len(DISEASE_GUIDES))
 
 
 def json_error(message, status_code):
@@ -104,13 +89,15 @@ def health():
             "status": "ok",
             "model_available": config is not None,
             "model_error": model_error,
+            "num_classes": len(config["class_names"]) if config else 0,
+            "num_disease_guides": len(DISEASE_GUIDES),
         }
     )
 
 
 @app.get("/api/diseases")
 def diseases():
-    """List guides only for classes configured in the actual model labels."""
+    """List all disease guides keyed to the model's class labels."""
     config, model_error = get_model_status()
     if config is None:
         return jsonify(
@@ -122,14 +109,28 @@ def diseases():
         )
 
     guides = []
-    seen_classes = set()
+    seen = set()
     for label in config["class_names"]:
-        class_key = normalize_class_name(label)
-        if class_key in DISEASE_GUIDES and class_key not in seen_classes:
-            guides.append({"class_name": label, **DISEASE_GUIDES[class_key]})
-            seen_classes.add(class_key)
+        key = normalize_class_name(label)
+        if key not in seen:
+            guide = DISEASE_GUIDES.get(key)
+            if guide:
+                guides.append({"class_name": label, "class_key": key, **guide})
+            else:
+                guides.append({
+                    "class_name": label,
+                    "class_key": key,
+                    "name": label.replace("___", " – ").replace("_", " "),
+                    "crop": label.split("___")[0].replace("_", " ") if "___" in label else "Unknown",
+                    "health_status": "healthy" if "healthy" in label.lower() else "diseased",
+                    "description": "",
+                    "symptoms": [],
+                    "prevention": [],
+                    "management": "",
+                })
+            seen.add(key)
 
-    return jsonify({"model_available": True, "diseases": guides})
+    return jsonify({"model_available": True, "total": len(guides), "diseases": guides})
 
 
 @app.post("/api/predict")
@@ -145,15 +146,15 @@ def predict():
 
     try:
         with Image.open(io.BytesIO(image_bytes)) as image:
-            if image.format not in {"JPEG", "PNG"}:
-                return json_error("Unsupported image format. Use a JPG, JPEG, or PNG image.", 400)
+            if image.format not in {"JPEG", "PNG", "WEBP"}:
+                return json_error("Unsupported image format. Use a JPG, JPEG, PNG, or WEBP image.", 400)
             if image.width * image.height > MAX_IMAGE_PIXELS:
                 return json_error("Image has too many pixels. Choose an image under 20 megapixels.", 400)
             image.verify()
         with Image.open(io.BytesIO(image_bytes)) as image:
             leaf_image = image.convert("RGB")
     except (UnidentifiedImageError, OSError, Image.DecompressionBombError):
-        return json_error("The uploaded file is not a readable JPG or PNG image.", 400)
+        return json_error("The uploaded file is not a readable image.", 400)
 
     try:
         result = predict_image(leaf_image, MODEL_DIR)
@@ -167,7 +168,10 @@ def predict():
         {
             "prediction": result,
             "guide": guide,
-            "disclaimer": "AI scores are estimates, not guaranteed accuracy or a professional diagnosis.",
+            "disclaimer": (
+                "AI scores are estimates only, not a guaranteed diagnosis. "
+                "Always confirm with a qualified agricultural expert."
+            ),
         }
     )
 
@@ -176,6 +180,7 @@ def predict():
 def request_too_large(_error):
     """Keep Flask's request-size error response in the API's JSON format."""
     return json_error("Request is too large. Image files must be 8 MB or smaller.", 413)
+
+
 if __name__ == "__main__":
-    # This local development server is for learning and testing only.
     app.run(host="127.0.0.1", port=5000, debug=False)

@@ -3,100 +3,308 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="theme-color" content="#f6f7f1">
-    <meta name="description" content="Upload a crop leaf photo to check for possible disease with AgroVision AI.">
-    <title>AgroVision — Plant health, made clearer</title>
+    <meta name="theme-color" content="#0d1f15">
+    <meta name="description" content="AgroVision AI — Upload a crop leaf photo to instantly detect plant diseases with 99% accuracy powered by deep learning.">
+    <meta property="og:title" content="AgroVision AI — Plant Disease Detection">
+    <meta property="og:description" content="Detect plant diseases instantly with AI. Upload a leaf photo and get expert guidance.">
+    <title>AgroVision AI — Plant Disease Detection</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <script src="{{ url_for('static', filename='app.js') }}" defer></script>
   </head>
   <body>
+
+    <!-- PARTICLES BACKGROUND -->
+    <div class="bg-particles" aria-hidden="true">
+      <div class="particle p1"></div>
+      <div class="particle p2"></div>
+      <div class="particle p3"></div>
+      <div class="particle p4"></div>
+      <div class="particle p5"></div>
+    </div>
+
+    <!-- HEADER -->
     <header class="site-header">
-      <a class="brand" href="/" aria-label="AgroVision home">
-        <span class="brand-mark" aria-hidden="true">
-          <svg viewBox="0 0 32 32" fill="none"><path d="M25.8 5.2C15.3 5.4 8.2 8.1 7 15.1c-.7 4.2 2.4 7.4 6.3 6.6 7.1-1.5 10.1-9.3 12.5-16.5Z" fill="currentColor"/><path d="M7.1 26.4c3.1-6.2 7.5-10.4 13-13.6" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/></svg>
+      <a class="brand" href="/" aria-label="AgroVision AI home">
+        <span class="brand-icon" aria-hidden="true">
+          <svg viewBox="0 0 36 36" fill="none">
+            <circle cx="18" cy="18" r="18" fill="url(#bg)"/>
+            <path d="M28 8C18 8.3 10 11.5 8.5 19.5c-.8 5 2.8 8.5 7.5 7.5 8.2-1.7 11.6-10.5 12-19Z" fill="#4ade80"/>
+            <path d="M8.5 28c3.5-7.2 8.5-12 15-15.5" stroke="white" stroke-width="2" stroke-linecap="round"/>
+            <defs>
+              <linearGradient id="bg" x1="0" y1="0" x2="36" y2="36" gradientUnits="userSpaceOnUse">
+                <stop stop-color="#166534"/>
+                <stop offset="1" stop-color="#14532d"/>
+              </linearGradient>
+            </defs>
+          </svg>
         </span>
-        <span>agro<span class="brand-light">vision</span></span>
+        <span class="brand-name">Agro<span class="brand-accent">Vision</span> <span class="brand-tag">AI</span></span>
       </a>
       <nav class="header-nav" aria-label="Main navigation">
         <a class="nav-link" href="#how-it-works">How it works</a>
-        <a class="nav-link" href="#about">About</a>
+        <a class="nav-link" href="#diseases">38 Crops</a>
+        <a class="nav-link" href="#checker">Try it</a>
       </nav>
-      <a class="header-cta" href="#checker">Check a leaf <span aria-hidden="true">↗</span></a>
+      <a class="header-cta" href="#checker" id="nav-check-btn">
+        <span>Analyze Leaf</span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M7 17L17 7M17 7H7M17 7v10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
     </header>
 
     <main>
-      <section class="hero" id="about">
-        <div class="hero-copy">
-          <div class="eyebrow"><span class="eyebrow-line"></span> A little more insight for every grower</div>
-          <h1>Healthy plants<br>start with <span>a closer look.</span></h1>
-          <p class="hero-description">Upload a clear photo of a leaf. Get an AI-powered check and practical next steps, all in one place.</p>
-          <a class="primary-button hero-button" href="#checker">Check your plant <span aria-hidden="true">↓</span></a>
-          <div class="hero-note"><span class="note-icon" aria-hidden="true">✳</span> A helpful starting point, not a replacement for expert advice.</div>
+      <!-- HERO -->
+      <section class="hero" id="hero">
+        <div class="hero-content">
+          <div class="hero-badge">
+            <span class="badge-dot"></span>
+            <span>99.49% Validation Accuracy · 38 Plant Classes</span>
+          </div>
+          <h1 class="hero-title">
+            Detect Plant Diseases<br>
+            <span class="hero-gradient-text">Instantly with AI</span>
+          </h1>
+          <p class="hero-subtitle">
+            Upload a leaf photograph and our deep learning model — trained on the full PlantVillage dataset — 
+            identifies diseases across 14 crops with expert-level accuracy.
+          </p>
+          <div class="hero-actions">
+            <a class="btn-primary" href="#checker" id="hero-check-btn">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Upload Leaf Photo
+            </a>
+            <a class="btn-secondary" href="#diseases">
+              View All 38 Classes
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </a>
+          </div>
+          <div class="hero-stats">
+            <div class="stat-item">
+              <span class="stat-num">38</span>
+              <span class="stat-label">Disease Classes</span>
+            </div>
+            <div class="stat-divider"></div>
+            <div class="stat-item">
+              <span class="stat-num">14</span>
+              <span class="stat-label">Crop Types</span>
+            </div>
+            <div class="stat-divider"></div>
+            <div class="stat-item">
+              <span class="stat-num">99.5%</span>
+              <span class="stat-label">Val. Accuracy</span>
+            </div>
+          </div>
         </div>
-        <div class="hero-visual" aria-label="Illustration of a healthy leaf">
-          <div class="visual-orbit orbit-one"></div>
-          <div class="visual-orbit orbit-two"></div>
-          <div class="visual-sun"></div>
-          <svg class="hero-leaf" viewBox="0 0 380 380" fill="none" aria-hidden="true">
-            <path d="M311 63C214 69 98 99 77 191c-13 57 29 99 80 82 91-30 128-130 154-210Z" fill="#6F9D58"/>
-            <path d="M78 305c42-86 104-144 197-202" stroke="#E4E8C9" stroke-width="5" stroke-linecap="round"/>
-            <path d="m141 235-35-9M188 194l-31-31M232 154l-1-40M114 265l-42-5M209 178l-12-47" stroke="#E4E8C9" stroke-width="3" stroke-linecap="round"/>
-            <path d="M313 63c-3 100-37 171-104 214" stroke="#244C36" stroke-opacity=".16" stroke-width="2"/>
-          </svg>
-          <div class="visual-caption"><span class="caption-spark">✳</span><span><strong>Grow with confidence</strong><small>One leaf at a time</small></span></div>
-          <span class="visual-label label-top">LEAF HEALTH</span>
-          <span class="visual-label label-bottom">GROW NATURALLY</span>
+        <div class="hero-visual" aria-hidden="true">
+          <div class="hero-card-float">
+            <div class="float-card card-1">
+              <div class="float-icon healthy">✓</div>
+              <div>
+                <div class="float-title">Tomato Leaf</div>
+                <div class="float-sub">Healthy · 97.3% confidence</div>
+              </div>
+            </div>
+            <div class="float-card card-2">
+              <div class="float-icon diseased">!</div>
+              <div>
+                <div class="float-title">Apple Scab</div>
+                <div class="float-sub">Disease detected · 94.1%</div>
+              </div>
+            </div>
+            <div class="float-card card-3">
+              <div class="float-icon scanning">◎</div>
+              <div>
+                <div class="float-title">Analyzing...</div>
+                <div class="float-sub">ResNet50 · PlantVillage</div>
+              </div>
+            </div>
+            <div class="hero-leaf-visual">
+              <svg viewBox="0 0 200 200" fill="none">
+                <circle cx="100" cy="100" r="80" fill="rgba(74,222,128,0.08)" stroke="rgba(74,222,128,0.2)" stroke-width="1"/>
+                <circle cx="100" cy="100" r="55" fill="rgba(74,222,128,0.06)" stroke="rgba(74,222,128,0.15)" stroke-width="1"/>
+                <path d="M155 55C105 57 65 75 58 112c-5 24 14 40 36 34 41-12 58-60 61-91Z" fill="url(#leaf-g)"/>
+                <path d="M58 148c18-40 48-66 77-82" stroke="rgba(255,255,255,0.4)" stroke-width="2.5" stroke-linecap="round"/>
+                <path d="M91 125l-18-5M112 107l-16-16M132 88l0-20M79 135l-20-3M120 100l-6-22" stroke="rgba(255,255,255,0.3)" stroke-width="1.5" stroke-linecap="round"/>
+                <defs>
+                  <linearGradient id="leaf-g" x1="55" y1="55" x2="155" y2="148" gradientUnits="userSpaceOnUse">
+                    <stop stop-color="#4ade80"/>
+                    <stop offset="1" stop-color="#16a34a"/>
+                  </linearGradient>
+                </defs>
+              </svg>
+            </div>
+          </div>
         </div>
       </section>
 
+      <!-- HOW IT WORKS -->
+      <section class="how-section" id="how-it-works">
+        <div class="section-header">
+          <div class="section-tag">HOW IT WORKS</div>
+          <h2 class="section-title">Three steps to healthier crops</h2>
+          <p class="section-subtitle">Our AI pipeline analyzes your photo in seconds using a ResNet50 deep learning model trained on 87,000+ plant images.</p>
+        </div>
+        <div class="steps-grid">
+          <div class="step-card">
+            <div class="step-num">01</div>
+            <div class="step-icon-wrap">
+              <svg viewBox="0 0 24 24" fill="none"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+            <h3>Upload a Leaf Photo</h3>
+            <p>Take a clear, close-up photo of one leaf. JPG, PNG or WEBP up to 8 MB. Drag &amp; drop or browse your device.</p>
+          </div>
+          <div class="step-arrow" aria-hidden="true">→</div>
+          <div class="step-card">
+            <div class="step-num">02</div>
+            <div class="step-icon-wrap">
+              <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.8"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+            </div>
+            <h3>AI Analyzes the Image</h3>
+            <p>Our ResNet50 model processes the image through 25 million parameters, comparing it against 38 plant disease patterns.</p>
+          </div>
+          <div class="step-arrow" aria-hidden="true">→</div>
+          <div class="step-card">
+            <div class="step-num">03</div>
+            <div class="step-icon-wrap">
+              <svg viewBox="0 0 24 24" fill="none"><path d="M9 12l2 2 4-4M21 12c0 4.97-4.03 9-9 9S3 16.97 3 12 7.03 3 12 3s9 4.03 9 9Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+            <h3>Get Expert Guidance</h3>
+            <p>Receive the diagnosis with confidence score, symptoms, prevention methods, and management recommendations.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- MAIN CHECKER -->
       <section class="checker-section" id="checker">
-        <div class="section-heading">
-          <div><div class="eyebrow"><span class="eyebrow-line"></span> YOUR PLANT CHECK</div><h2>Let’s take a look.</h2></div>
-          <p>For the clearest check, choose a sharp, well-lit photo of one leaf.</p>
-        </div>
+        <div class="checker-container">
+          <div class="section-header">
+            <div class="section-tag">PLANT ANALYZER</div>
+            <h2 class="section-title">Analyze your plant</h2>
+            <p class="section-subtitle">Upload a leaf photo to get an instant AI-powered health assessment.</p>
+          </div>
 
-        <div class="checker-grid">
-          <section class="upload-card" aria-labelledby="upload-title">
-            <div class="card-topline"><span class="step-number">01</span><span>ADD A PHOTO</span><span class="supported-formats">JPG or PNG · up to 8 MB</span></div>
-            <h3 id="upload-title">Upload a leaf photo</h3>
-            <p class="card-description">Choose an existing photo or take one with your camera.</p>
-            <input id="leaf-upload" class="visually-hidden" type="file" accept="image/jpeg,image/png,.jpg,.jpeg,.png">
-            <label id="drop-zone" class="drop-zone" for="leaf-upload" tabindex="0">
-              <span class="upload-icon" aria-hidden="true">
-                <svg viewBox="0 0 24 24" fill="none"><path d="M12 16V4m0 0L7.5 8.5M12 4l4.5 4.5M5 14.5v3A2.5 2.5 0 0 0 7.5 20h9a2.5 2.5 0 0 0 2.5-2.5v-3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
-              </span>
-              <span class="drop-title">Drop your photo here</span>
-              <span class="drop-subtitle">or <span>browse files</span> on your device</span>
-              <span id="file-name" class="file-name" aria-live="polite"></span>
-              <img id="image-preview" class="image-preview" alt="Selected leaf photo preview" hidden>
-            </label>
-            <div id="form-message" class="form-message" role="status" aria-live="polite" hidden></div>
-            <button id="analyze-button" class="primary-button analyze-button" type="button" disabled>
-              <span id="button-label">Choose a photo to continue</span>
-              <span class="button-arrow" aria-hidden="true">→</span>
-            </button>
-            <p class="privacy-note"><span aria-hidden="true">⌑</span> Your photo is analyzed by this app and isn’t saved to disk.</p>
-          </section>
+          <div class="checker-grid">
+            <!-- Upload Panel -->
+            <div class="upload-panel">
+              <div class="panel-header">
+                <span class="panel-step">01</span>
+                <span class="panel-label">UPLOAD PHOTO</span>
+                <span class="panel-formats">JPG · PNG · WEBP · max 8MB</span>
+              </div>
 
-          <aside class="info-column">
-            <section id="result-card" class="result-card" aria-live="polite" hidden>
-              <div class="card-topline"><span class="step-number">02</span><span>YOUR RESULTS</span></div>
-              <div class="result-content"></div>
-            </section>
-            <section class="how-card" id="how-it-works">
-              <div class="card-topline"><span>HOW IT WORKS</span><span class="leaf-spark" aria-hidden="true">✳</span></div>
-              <ol class="steps-list">
-                <li><span class="step-icon">01</span><span><strong>Choose a leaf</strong><small>Use a clear, close-up JPG or PNG.</small></span></li>
-                <li><span class="step-icon">02</span><span><strong>Get an AI check</strong><small>Your image is compared with the installed model.</small></span></li>
-                <li><span class="step-icon">03</span><span><strong>Explore next steps</strong><small>Review guidance and confirm concerns locally.</small></span></li>
-              </ol>
-            </section>
-            <div class="disclaimer"><span aria-hidden="true">✳</span><p><strong>A note on accuracy</strong><br>AI can make mistakes. This is a helpful starting point, not a professional diagnosis.</p></div>
-          </aside>
+              <input id="leaf-upload" class="visually-hidden" type="file" accept="image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp" aria-label="Upload leaf photo">
+
+              <label id="drop-zone" class="drop-zone" for="leaf-upload" tabindex="0" role="button" aria-describedby="drop-hint">
+                <div class="drop-idle" id="drop-idle">
+                  <div class="drop-icon">
+                    <svg viewBox="0 0 48 48" fill="none">
+                      <circle cx="24" cy="24" r="23" stroke="currentColor" stroke-width="1.5" stroke-dasharray="4 3"/>
+                      <path d="M24 32V16m0 0l-6 6m6-6l6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                      <path d="M15 36h18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                  </div>
+                  <p class="drop-title" id="drop-hint">Drop your leaf photo here</p>
+                  <p class="drop-sub">or <span class="drop-link">browse files</span></p>
+                  <p class="drop-tip">💡 Tip: Use clear, close-up photos for best results</p>
+                </div>
+                <div class="drop-preview" id="drop-preview" hidden>
+                  <img id="image-preview" alt="Selected leaf photo preview">
+                  <div class="preview-overlay">
+                    <span class="preview-filename" id="file-name"></span>
+                    <span class="preview-change">Click to change</span>
+                  </div>
+                </div>
+              </label>
+
+              <div id="form-message" class="form-message" role="alert" aria-live="polite" hidden></div>
+
+              <button id="analyze-button" class="btn-analyze" type="button" disabled aria-label="Analyze the selected leaf photo">
+                <span class="btn-analyze-text" id="button-label">Choose a photo first</span>
+                <span class="btn-analyze-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none"><path d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0Z" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                </span>
+                <span class="btn-spinner" id="btn-spinner" hidden></span>
+              </button>
+
+              <p class="privacy-note">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
+                Your photo is analyzed locally and never stored on disk.
+              </p>
+            </div>
+
+            <!-- Results Panel -->
+            <div class="results-panel">
+              <div class="panel-header">
+                <span class="panel-step">02</span>
+                <span class="panel-label">AI RESULTS</span>
+              </div>
+
+              <!-- Empty state -->
+              <div class="results-empty" id="results-empty">
+                <div class="empty-icon">🌿</div>
+                <h3>Awaiting your photo</h3>
+                <p>Upload a leaf photo to see the AI diagnosis here. Results appear instantly after analysis.</p>
+              </div>
+
+              <!-- Results content (filled by JS) -->
+              <div id="result-card" class="result-card" aria-live="polite" hidden></div>
+            </div>
+          </div>
         </div>
       </section>
+
+      <!-- DISEASE DIRECTORY -->
+      <section class="diseases-section" id="diseases">
+        <div class="section-header">
+          <div class="section-tag">DISEASE DIRECTORY</div>
+          <h2 class="section-title">38 Detectable Conditions</h2>
+          <p class="section-subtitle">Covering diseases and healthy states across 14 crop types from the PlantVillage dataset.</p>
+        </div>
+        <div id="disease-grid" class="disease-grid">
+          <div class="diseases-loading">
+            <div class="spinner"></div>
+            <p>Loading disease database…</p>
+          </div>
+        </div>
+      </section>
+
     </main>
 
-    <footer class="site-footer"><a class="brand footer-brand" href="/"><span class="brand-mark" aria-hidden="true">✳</span><span>agro<span class="brand-light">vision</span></span></a><span>Made for healthier growing. Always ask a local expert when in doubt.</span><a href="/api/health">API status <span aria-hidden="true">↗</span></a></footer>
+    <!-- FOOTER -->
+    <footer class="site-footer">
+      <div class="footer-inner">
+        <div class="footer-brand">
+          <a class="brand" href="/" aria-label="AgroVision AI home">
+            <span class="brand-icon" aria-hidden="true">
+              <svg viewBox="0 0 36 36" fill="none">
+                <circle cx="18" cy="18" r="18" fill="url(#bg2)"/>
+                <path d="M28 8C18 8.3 10 11.5 8.5 19.5c-.8 5 2.8 8.5 7.5 7.5 8.2-1.7 11.6-10.5 12-19Z" fill="#4ade80"/>
+                <path d="M8.5 28c3.5-7.2 8.5-12 15-15.5" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                <defs>
+                  <linearGradient id="bg2" x1="0" y1="0" x2="36" y2="36" gradientUnits="userSpaceOnUse">
+                    <stop stop-color="#166534"/>
+                    <stop offset="1" stop-color="#14532d"/>
+                  </linearGradient>
+                </defs>
+              </svg>
+            </span>
+            <span class="brand-name">Agro<span class="brand-accent">Vision</span> <span class="brand-tag">AI</span></span>
+          </a>
+          <p>AI-powered plant disease detection using ResNet50 trained on the PlantVillage dataset.</p>
+        </div>
+        <div class="footer-links">
+          <a href="/api/health">API Status ↗</a>
+          <a href="/api/diseases">Disease API ↗</a>
+          <a href="#checker">Analyze Leaf</a>
+        </div>
+        <div class="footer-disclaimer">
+          ⚠️ <strong>Disclaimer:</strong> AgroVision AI provides general information only. 
+          Always confirm diagnoses with a qualified local agricultural expert before taking action.
+        </div>
+      </div>
+    </footer>
+
   </body>
 </html>
